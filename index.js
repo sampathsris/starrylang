@@ -6,6 +6,9 @@
 /*
  * Default I/O functions.
  */
+function print(str) {
+    console.log(str);
+}
 
 /**
  * Parse a given string of code and return an array of operations.
@@ -139,6 +142,45 @@ function add() {
     this.stack.push(x % y);
 }
 
+/**
+ * Pop a value and print it as a number.
+ */
+function printn() {
+    this.print(this.stack.pop().toString());
+}
+
+/**
+ * Pop a value and print it as an ASCII character.
+ */
+function printc() {
+    this.print(String.fromCharCode(this.stack.pop()));
+}
+
+/**
+ * Read a number from input and push it to stack.
+ */
+function readn() {
+    throw "Not implemented.";
+}
+
+/**
+ * Read an ASCII value from input and push it to stack.
+ */
+function readc() {
+    throw "Not implemented.";
+}
+
+/**
+ * Pop a value; if non-zero, jump to label n.
+ */
+function jnz() {
+    const top = this.stack.pop();
+
+    if (top !== 0) {
+        throw "Not implemented";
+    }
+}
+
 /*
  * Basic operations.
  */
@@ -163,6 +205,7 @@ const OP = [
  */
 function Starry(src, options) {
     this.options = options || {};
+    this.print = this.options.print || print;
     this.code = parse(src);
     this.stack = [];
     this.labels = {};
