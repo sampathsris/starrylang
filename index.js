@@ -11,41 +11,6 @@ function print(str) {
 }
 
 /**
- * Parse a given string of code and return an array of operations.
- */
-function parse (src) {
-    if (!src) throw "Empty program";
-
-    const length = src.length;
-    let calc = 0;
-
-    for (var i = 0; i < length; i++) {
-        const char = src.charAt(i);
-        
-        switch (char) {
-            case " ":
-                calc++;
-                break;
-            case "+":
-                break;
-            case "*":
-                break;
-            case ".":
-                break;
-            case ",":
-                break;
-            case "`":
-                break;
-            case "'":
-                break;
-        
-            default:
-                break;
-        }
-    }
-}
-
-/**
  * Invalid opcode.
  */
 function invalid() {
@@ -200,6 +165,102 @@ const OP_BASIC = [
     pushn
 ];
 
+const OP_ARITHMATIC = [
+    add,
+    sub,
+    mul,
+    div,
+    mod
+];
+
+const OP_PRINT = [
+    printn,
+    printc
+];
+
+const OP_READ = [
+    readn,
+    readc
+];
+
+/**
+ * Parse a given string of code and return an array of operations.
+ */
+function parse (src) {
+    if (!src) throw "Empty program";
+
+    const length = src.length;
+    let calc = 0;
+    let code = [];
+    let labels = {};
+
+    for (let i = 0; i < length; i++) {
+        const char = src.charAt(i);
+        
+        switch (char) {
+            case " ":
+                calc++;
+                break;
+
+            case "+":
+                if (calc < 5) {
+                    code.push(OP_BASIC[calc]);
+                } else {
+                    let n = calc - 5;
+                    code.push(function () {
+                        pushn.call(this, n);
+                    });
+                }
+
+                calc = 0;
+                break;
+
+            case "*":
+                code.push(OP_ARITHMATIC[calc % OP_ARITHMATIC.length]);
+                calc = 0;
+                break;
+
+            case ".":
+                code.push(OP_PRINT[calc % OP_PRINT.length]);
+                calc = 0;
+                break;
+
+            case ",":
+                code.push(OP_READ[calc % OP_READ.length]);
+                calc = 0;
+                break;
+
+            case "`":
+                if (labels[calc]) {
+                    throw "Duplicate label " + calc + " at " + i;
+                }
+
+                labels[calc] = code.length;
+                calc = 0;
+                break;
+
+            case "'":
+                let itmp = i;
+                let label = calc;
+                code.push(function () {
+                    this.jump = labels[label];
+
+                    if (!this.jump) {
+                        throw "Unrecognized label " + calc + " at " + itmp;
+                    }
+
+                    jnz.call(this);
+                });
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    return code;
+}
+
 /**
  * Entry point
  */
@@ -208,7 +269,6 @@ function Starry(src, options) {
     this.print = this.options.print || print;
     this.code = parse(src);
     this.stack = [];
-    this.labels = {};
 }
 
 /*
