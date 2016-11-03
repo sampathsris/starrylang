@@ -138,23 +138,13 @@ function readc() {
 /**
  * Pop a value; if non-zero, jump to label n.
  */
-function jnz() {
+function jnz(jump) {
     const top = this.stack.pop();
 
     if (top !== 0) {
-        throw "Not implemented";
+        this.pc = jump;
     }
 }
-
-/*
- * Basic operations.
- */
-const OP_INVALID = 0;
-const OP_DUP = 1;
-const OP_SWAP = 2;
-const OP_ROTATE = 3;
-const OP_POP = 4;
-const OP_PUSHN = 5;
 
 const OP_BASIC = [
     invalid,
@@ -184,18 +174,17 @@ const OP_READ = [
 ];
 
 /**
- * Parse a given string of code and return an array of operations.
+ * Interpret a given string of code and return an array of operations.
  */
-function parse (src) {
-    if (!src) throw "Empty program";
+function interpret() {
+    if (!this.code) throw "Empty program";
 
-    const length = src.length;
+    const codeLength = this.code.length;
     let calc = 0;
-    let code = [];
     let labels = {};
 
-    for (let i = 0; i < length; i++) {
-        const char = src.charAt(i);
+    while (this.pc < codeLength) {
+        const char = this.code.charAt(this.pc);
         
         switch (char) {
             case " ":
@@ -204,79 +193,82 @@ function parse (src) {
 
             case "+":
                 if (calc < 5) {
-                    code.push(OP_BASIC[calc]);
+                    (OP_BASIC[calc]).call(this);
                 } else {
-                    let n = calc - 5;
-                    code.push(function () {
-                        pushn.call(this, n);
-                    });
+                    pushn.call(this, calc - 5);
                 }
 
                 calc = 0;
                 break;
 
             case "*":
-                code.push(OP_ARITHMATIC[calc % OP_ARITHMATIC.length]);
+                (OP_ARITHMATIC[calc % OP_ARITHMATIC.length]).call(this);
                 calc = 0;
                 break;
 
             case ".":
-                code.push(OP_PRINT[calc % OP_PRINT.length]);
+                (OP_PRINT[calc % OP_PRINT.length]).call(this);
                 calc = 0;
                 break;
 
             case ",":
-                code.push(OP_READ[calc % OP_READ.length]);
+                (OP_READ[calc % OP_READ.length]).call(this);
                 calc = 0;
                 break;
 
             case "`":
                 if (labels[calc]) {
-                    throw "Duplicate label " + calc + " at " + i;
+                    throw "Duplicate label " + calc + " at " + this.pc;
                 }
 
-                labels[calc] = code.length;
+                labels[calc] = this.pc;
                 calc = 0;
                 break;
 
             case "'":
-                let itmp = i;
                 let label = calc;
-                code.push(function () {
-                    this.jump = labels[label];
+                let jump = labels[label];
 
-                    if (!this.jump) {
-                        throw "Unrecognized label " + calc + " at " + itmp;
-                    }
+                if (!jump) {
+                    throw "Unrecognized label " + calc + " at " + this.pc;
+                }
 
-                    jnz.call(this);
-                });
+                jnz.call(this, jump);
+                calc = 0;
                 break;
 
             default:
                 break;
         }
-    }
 
-    return code;
+        this.pc++;
+    }
+}
+/**
+ * Run the code.
+ */
+function run() {
+    while (this.pc < this.code.length) {
+        let op = this.code[this.pc];
+        op.call(this);
+    }
 }
 
 /**
  * Entry point
  */
 function Starry(src, options) {
-    this.options = options || {};
-    this.print = this.options.print || print;
-    this.code = parse(src);
-    this.stack = [];
-}
+    options = options || {};
+    
+    let vm = {
+        "options": options,
+        "print": options.print || print,
+        "code": src,
+        "stack": [],
+        "pc": 0
+    };
 
-/*
- * Compound operations.
- */
-
-Starry.prototype.run = function () {
-
+    interpret.call(vm);
 }
 
 module.exports = Starry;
