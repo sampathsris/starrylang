@@ -121,7 +121,7 @@ function mul() {
 /**
  * Pop y, pop x, push x / y.
  */
-function add() {
+function div() {
     const y = this.stack.pop();
     
     if (y === 0) throw "Division by zero error.";
@@ -133,7 +133,7 @@ function add() {
 /**
  * Pop y, pop x, push x % y.
  */
-function add() {
+function mod() {
     const y = this.stack.pop();
     
     if (y === 0) throw "Division by zero error.";
@@ -191,7 +191,7 @@ const OP_ROTATE = 3;
 const OP_POP = 4;
 const OP_PUSHN = 5;
 
-const OP = [
+const OP_BASIC = [
     invalid,
     dup,
     swap,
