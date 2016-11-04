@@ -173,11 +173,16 @@ const OP_READ = [
     readc
 ];
 
+function ParserError(message, location) {
+    this.message = message;
+    this.location = location;
+}
+
 /**
  * Interpret a given string of code and return an array of operations.
  */
 function interpret() {
-    if (!this.code) throw "Empty program";
+    if (!this.code) throw new ParserError("Empty program", 0);
 
     const codeLength = this.code.length;
     let calc = 0;
@@ -192,7 +197,9 @@ function interpret() {
                 break;
 
             case "+":
-                if (calc < 5) {
+                if (calc === 0) {
+                    throw new ParserError("Invalid operation", this.pc);
+                } else if (calc < 5) {
                     (OP_BASIC[calc]).call(this);
                 } else {
                     pushn.call(this, calc - 5);
@@ -218,7 +225,7 @@ function interpret() {
 
             case "`":
                 if (labels[calc]) {
-                    throw "Duplicate label " + calc + " at " + this.pc;
+                    throw new ParserError("Duplicate label " + calc, this.pc);
                 }
 
                 labels[calc] = this.pc;
@@ -230,7 +237,7 @@ function interpret() {
                 let jump = labels[label];
 
                 if (!jump) {
-                    throw "Unrecognized label " + calc + " at " + this.pc;
+                    throw new ParserError("Unrecognized label " + calc, this.pc);
                 }
 
                 jnz.call(this, jump);
@@ -259,7 +266,17 @@ function Starry(src, options) {
         "pc": 0
     };
 
-    interpret.call(vm);
+    try {
+        interpret.call(vm);
+    } catch (error) {
+        if (error instanceof ParserError) {
+            console.log("PARSER ERROR: " + error.message);
+            console.log("    at " + error.location);
+        } else {
+            console.log("UNEXPECTED ERROR: " + error.message ? error.message : "");
+            console.log(error)
+        }
+    }
 }
 
 module.exports = Starry;
