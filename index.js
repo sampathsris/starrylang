@@ -244,15 +244,6 @@ function interpret() {
         this.pc++;
     }
 }
-/**
- * Run the code.
- */
-function run() {
-    while (this.pc < this.code.length) {
-        let op = this.code[this.pc];
-        op.call(this);
-    }
-}
 
 /**
  * Entry point
