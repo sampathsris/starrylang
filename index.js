@@ -11,13 +11,6 @@ function print(str) {
 }
 
 /**
- * Invalid opcode.
- */
-function invalid() {
-    throw "Invalid opcode.";
-}
-
-/**
  * Duplicate top of stack.
  */
 function dup() {
@@ -147,7 +140,7 @@ function jnz(jump) {
 }
 
 const OP_BASIC = [
-    invalid,
+    undefined,
     dup,
     swap,
     rotate,
