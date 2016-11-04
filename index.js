@@ -7,7 +7,7 @@
  * Default I/O functions.
  */
 function print(str) {
-    console.log(str);
+    process.stdout.write(str);
 }
 
 /**
