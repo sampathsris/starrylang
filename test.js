@@ -1,5 +1,5 @@
 
-const Starry = require('./index');
+const Starry = require('./starry');
 
 Starry(`            +               +  *       +    
  * + .        +              +  *       +   
