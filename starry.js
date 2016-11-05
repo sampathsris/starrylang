@@ -179,7 +179,6 @@ function interpret() {
 
     const codeLength = this.code.length;
     let calc = 0;
-    let labels = {};
 
     while (this.pc < codeLength) {
         const char = this.code.charAt(this.pc);
@@ -217,17 +216,17 @@ function interpret() {
                 break;
 
             case "`":
-                if (labels[calc]) {
+                if (this.labels[calc]) {
                     throw new ParserError("Duplicate label " + calc, this.pc);
                 }
 
-                labels[calc] = this.pc;
+                this.labels[calc] = this.pc;
                 calc = 0;
                 break;
 
             case "'":
                 let label = calc;
-                let jump = labels[label];
+                let jump = this.labels[label];
 
                 if (!jump) {
                     throw new ParserError("Unrecognized label " + calc, this.pc);
@@ -256,6 +255,7 @@ function Starry(src, options) {
         "print": options.print || print,
         "code": src,
         "stack": [],
+        "labels": {},
         "pc": 0
     };
 
