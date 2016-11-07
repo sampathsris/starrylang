@@ -1,6 +1,6 @@
 {
   "name": "starrylang",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A JavaScript implementation of Starry (https://esolangs.org/wiki/Starry)",
   "main": "starry.js",
   "scripts": {
