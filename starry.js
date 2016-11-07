@@ -10,6 +10,12 @@ function print(str) {
     process.stdout.write(str);
 }
 
+function readline(callback) {
+    setTimeout(function () {
+        callback('012');
+    }, 0);
+}
+
 /**
  * Duplicate top of stack.
  */
@@ -118,14 +124,30 @@ function printc() {
  * Read a number from input and push it to stack.
  */
 function readn() {
-    throw "Not implemented.";
+    const vm = this;
+    readline(function (line) {
+        const n = parseInt(line, 10);
+
+        if (!n) throw "I/O Error: expecting a number.";
+
+        vm.stack.push(n);
+        interpret.call(vm);
+    });
+    vm.pc++;
 }
 
 /**
  * Read an ASCII value from input and push it to stack.
  */
 function readc() {
-    throw "Not implemented.";
+    const vm = this;
+    readline(function (line) {
+        if (!line[0]) throw "I/O Error: expecting a character.";
+
+        vm.stack.push(line.charCodeAt(0));
+        interpret.call(vm);
+    });
+    vm.pc++;
 }
 
 /**
@@ -180,6 +202,7 @@ function interpret() {
     const codeLength = this.code.length;
     let calc = 0;
 
+    progloop:
     while (this.pc < codeLength) {
         const char = this.code.charAt(this.pc);
         
@@ -213,7 +236,7 @@ function interpret() {
             case ",":
                 (OP_READ[calc % OP_READ.length]).call(this);
                 calc = 0;
-                break;
+                break progloop;
 
             case "`":
                 if (this.labels[calc]) {
